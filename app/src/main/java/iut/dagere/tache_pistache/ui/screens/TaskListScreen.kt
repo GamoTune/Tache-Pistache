@@ -11,12 +11,21 @@ import iut.dagere.tache_pistache.ui.components.TaskItem
 import iut.dagere.tache_pistache.ui.theme.TachePistacheTheme
 
 @Composable
-fun TaskListScreen(tasks: List<Task>, onTaskClick: (Task) -> Unit, modifier: Modifier = Modifier) {
+fun TaskListScreen(
+    tasks: List<Task>,
+    onTaskClick: (Task) -> Unit,
+    onTaskDone: (Task, Boolean) -> Unit = { _, _ -> },
+    modifier: Modifier = Modifier
+) {
     LazyColumn(
         modifier = modifier.fillMaxSize()
     ) {
-        items(tasks) { task ->
-            TaskItem(task = task, onClick = { onTaskClick(task) })
+        items(tasks, key = { it.id }) { task ->
+            TaskItem(
+                task = task,
+                onClick = { onTaskClick(task) },
+                onDoneChanged = { isDone -> onTaskDone(task, isDone) }
+            )
         }
     }
 }
