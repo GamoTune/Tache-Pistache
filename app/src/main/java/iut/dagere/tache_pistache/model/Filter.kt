@@ -1,3 +1,8 @@
 package iut.dagere.tache_pistache.model
 
-// TODO: Implémenter la classe Filter (activeFilter, setFilter, clearFilter)
+enum class Filter(val label: String) {
+    ALL("Toutes"),
+    TODO("À faire"),
+    LATE("En retard"),
+    DONE("Terminées")
+}

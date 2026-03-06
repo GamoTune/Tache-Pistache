@@ -4,9 +4,7 @@ import iut.dagere.tache_pistache.data.TaskRepository
 import iut.dagere.tache_pistache.model.Status
 import iut.dagere.tache_pistache.model.Task
 
-class TaskController(
-    private val repository: TaskRepository
-) {
+class TaskController(private val repository: TaskRepository) {
 
     fun onAddTaskClicked(task: Task) {
         repository.saveTask(task)
@@ -31,5 +29,18 @@ class TaskController(
 
     fun deleteTask(task: Task) {
         repository.deleteTask(task)
+    }
+
+    /**
+     * Vérifie et met à jour le statut des tâches en retard. Une tâche est en retard si sa date
+     * d'échéance est passée et qu'elle n'est pas DONE.
+     */
+    fun checkAndUpdateLateTasks() {
+        val now = System.currentTimeMillis()
+        repository.getAllTasks().forEach { task ->
+            if (task.dueDate != null && task.dueDate < now && task.status == Status.TODO) {
+                repository.saveTask(task.copy(status = Status.LATE))
+            }
+        }
     }
 }
