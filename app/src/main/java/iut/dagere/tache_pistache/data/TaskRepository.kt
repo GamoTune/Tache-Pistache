@@ -1,6 +1,7 @@
 package iut.dagere.tache_pistache.data
 
 import androidx.compose.runtime.mutableStateListOf
+import iut.dagere.tache_pistache.model.Status
 import iut.dagere.tache_pistache.model.Task
 
 class TaskRepository {
@@ -19,5 +20,9 @@ class TaskRepository {
 
     fun deleteTask(t: Task) {
         tasks.removeAll { it.id == t.id }
+    }
+
+    fun purgeDoneTasks() {
+        tasks.removeAll { it.status == Status.DONE }
     }
 }

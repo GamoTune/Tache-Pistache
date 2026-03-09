@@ -31,6 +31,10 @@ class TaskController(private val repository: TaskRepository) {
         repository.deleteTask(task)
     }
 
+    fun purgeDoneTasks() {
+        repository.purgeDoneTasks()
+    }
+
     /**
      * Vérifie et met à jour le statut des tâches en retard. Une tâche est en retard si sa date
      * d'échéance est passée et qu'elle n'est pas DONE.
