@@ -23,6 +23,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import iut.dagere.tache_pistache.model.Status
 import iut.dagere.tache_pistache.model.Task
+import iut.dagere.tache_pistache.model.Recurrence
 import iut.dagere.tache_pistache.ui.theme.TachePistacheTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -63,6 +66,7 @@ fun TaskDetailScreen(
         var editedTitle by remember(task) { mutableStateOf(task.title) }
         var editedDescription by remember(task) { mutableStateOf(task.description) }
         var editedDueDate by remember(task) { mutableStateOf(task.dueDate) }
+        var editedRecurrence by remember(task) { mutableStateOf(task.recurrence) }
         var showDatePicker by remember { mutableStateOf(false) }
 
         val isDone = task.status == Status.DONE
@@ -136,7 +140,8 @@ fun TaskDetailScreen(
                                                                                 description =
                                                                                         editedDescription,
                                                                                 dueDate =
-                                                                                        editedDueDate
+                                                                                        editedDueDate,
+                                                                                recurrence = editedRecurrence
                                                                         )
                                                                 onSave(updatedTask)
                                                                 isEditing = false
@@ -208,6 +213,26 @@ fun TaskDetailScreen(
                                 if (editedDueDate != null) {
                                         TextButton(onClick = { editedDueDate = null }) {
                                                 Text("Supprimer la date d'échéance")
+                                        }
+
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        Text("Récurrence :", style = MaterialTheme.typography.titleMedium)
+                                        androidx.compose.foundation.lazy.LazyRow(
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                                        ) {
+                                                items(Recurrence.entries.size) { index ->
+                                                        val rec = Recurrence.entries[index]
+                                                        FilterChip(
+                                                                selected = editedRecurrence == rec,
+                                                                onClick = { editedRecurrence = rec },
+                                                                label = { Text(rec.label) },
+                                                                colors = FilterChipDefaults.filterChipColors(
+                                                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                                                                )
+                                                        )
+                                                }
                                         }
                                 }
                         } else {
@@ -381,8 +406,16 @@ fun TaskDetailScreen(
                                                         )
                                                 }
                                         }
-                                }
 
+                                        if (task.recurrence != Recurrence.NONE) {
+                                                Text(
+                                                        text = "↻ Récurrence : ${task.recurrence.label.lowercase()}",
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = MaterialTheme.colorScheme.secondary,
+                                                        modifier = Modifier.padding(bottom = 12.dp)
+                                                )
+                                        }
+                                }
                                 Card(
                                         modifier = Modifier.fillMaxWidth(),
                                         colors =

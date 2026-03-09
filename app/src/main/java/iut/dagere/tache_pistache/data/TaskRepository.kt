@@ -10,11 +10,18 @@ class TaskRepository {
     fun getAllTasks(): List<Task> = tasks.toList()
 
     fun saveTask(t: Task) {
-        val index = tasks.indexOfFirst { it.id == t.id }
-        if (index >= 0) {
-            tasks[index] = t
+        val taskToSave = if (t.id == 0) {
+            val nextId = (tasks.maxOfOrNull { it.id } ?: 0) + 1
+            t.copy(id = nextId)
         } else {
-            tasks.add(t)
+            t
+        }
+
+        val index = tasks.indexOfFirst { it.id == taskToSave.id }
+        if (index >= 0) {
+            tasks[index] = taskToSave
+        } else {
+            tasks.add(taskToSave)
         }
     }
 

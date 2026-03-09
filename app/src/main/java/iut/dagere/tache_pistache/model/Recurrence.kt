@@ -1,3 +1,8 @@
 package iut.dagere.tache_pistache.model
 
-// TODO: Implémenter l'enum Recurrence (Daily, Weekly, Monthly, Yearly, Custom)
+enum class Recurrence(val label: String) {
+    NONE("Aucune"),
+    DAILY("Quotidienne"),
+    WEEKLY("Hebdomadaire"),
+    MONTHLY("Mensuelle")
+}
