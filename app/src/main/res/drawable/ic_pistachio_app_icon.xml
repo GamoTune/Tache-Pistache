@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="512dp"
+    android:height="512dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <group
+        android:pivotX="256"
+        android:pivotY="256"
+        android:rotation="-15">
+
+        <!-- Base Beige -->
+        <path
+            android:fillColor="#FFCE94"
+            android:pathData="M 30,256
+                              C 40,230 60,210 80,170
+                              C 150,80 300,70 420,110
+                              C 460,130 480,160 490,190
+                              C 520,230 520,282 490,322
+                              C 480,352 460,382 420,402
+                              C 300,442 150,432 80,342
+                              C 60,302 40,282 30,256 Z" />
+
+        <!-- Green Wedge -->
+        <path
+            android:fillColor="#A2E09B"
+            android:pathData="M 120,256 L 490,190 C 520,230 520,282 490,322 Z" />
+
+        <!-- Shadow Beige -->
+        <path
+            android:fillColor="#F4B473"
+            android:pathData="M 30,256
+                              C 40,230 60,210 80,170
+                              C 70,200 60,220 60,256
+                              C 60,292 70,312 80,342
+                              C 60,302 40,282 30,256 Z" />
+
+        <!-- Outer Outline -->
+        <path
+            android:strokeColor="#000000"
+            android:strokeWidth="24"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000"
+            android:pathData="M 30,256
+                              C 40,230 60,210 80,170
+                              C 150,80 300,70 420,110
+                              C 460,130 480,160 490,190
+                              C 520,230 520,282 490,322
+                              C 480,352 460,382 420,402
+                              C 300,442 150,432 80,342
+                              C 60,302 40,282 30,256 Z" />
+
+        <!-- Inner V Lines with exact Gap -->
+        <path
+            android:strokeColor="#000000"
+            android:strokeWidth="24"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000"
+            android:pathData="M 240,235 L 120,256 L 490,322 M 280,228 L 490,190" />
+    </group>
+
+</vector>
