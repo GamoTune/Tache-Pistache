@@ -4,5 +4,7 @@ enum class Recurrence(val label: String) {
     NONE("Aucune"),
     DAILY("Quotidienne"),
     WEEKLY("Hebdomadaire"),
-    MONTHLY("Mensuelle")
+    MONTHLY("Mensuelle"),
+    YEARLY("Annuelle"),
+    CUSTOM("Personnalisée")
 }

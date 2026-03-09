@@ -32,6 +32,7 @@ fun TaskListScreen(
         tasks: List<Task>,
         onTaskClick: (Task) -> Unit,
         onTaskDone: (Task, Boolean) -> Unit = { _, _ -> },
+        onDeleteTask: (Task) -> Unit = {},
         selectedFilter: Filter = Filter.ALL,
         onFilterSelected: (Filter) -> Unit = {},
         modifier: Modifier = Modifier
@@ -93,7 +94,8 @@ fun TaskListScreen(
                 TaskItem(
                         task = task,
                         onClick = { onTaskClick(task) },
-                        onDoneChanged = { isDone -> onTaskDone(task, isDone) }
+                        onDoneChanged = { isDone -> onTaskDone(task, isDone) },
+                        onDelete = { onDeleteTask(task) }
                 )
             }
         }

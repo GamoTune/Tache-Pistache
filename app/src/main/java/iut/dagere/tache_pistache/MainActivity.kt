@@ -160,6 +160,10 @@ class MainActivity : ComponentActivity() {
                                         }
                                         refreshKey++
                                     },
+                                    onDeleteTask = { task ->
+                                        controller.deleteTask(task)
+                                        refreshKey++
+                                    },
                                     selectedFilter = selectedFilter,
                                     onFilterSelected = { filter -> selectedFilter = filter },
                                     modifier = Modifier.padding(innerPadding)

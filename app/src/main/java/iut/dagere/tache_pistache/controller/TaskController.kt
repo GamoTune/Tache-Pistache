@@ -4,6 +4,7 @@ import iut.dagere.tache_pistache.data.TaskRepository
 import iut.dagere.tache_pistache.model.Recurrence
 import iut.dagere.tache_pistache.model.Status
 import iut.dagere.tache_pistache.model.Task
+import iut.dagere.tache_pistache.model.TimeUnit
 import java.util.Calendar
 
 class TaskController(private val repository: TaskRepository) {
@@ -25,6 +26,19 @@ class TaskController(private val repository: TaskRepository) {
                 Recurrence.DAILY -> calendar.add(Calendar.DAY_OF_YEAR, 1)
                 Recurrence.WEEKLY -> calendar.add(Calendar.WEEK_OF_YEAR, 1)
                 Recurrence.MONTHLY -> calendar.add(Calendar.MONTH, 1)
+                Recurrence.YEARLY -> calendar.add(Calendar.YEAR, 1)
+                Recurrence.CUSTOM -> {
+                    if (task.customRecurrenceValue != null && task.customRecurrenceUnit != null) {
+                        val amount = task.customRecurrenceValue
+                        when (task.customRecurrenceUnit) {
+                            TimeUnit.HOURS -> calendar.add(Calendar.HOUR_OF_DAY, amount)
+                            TimeUnit.DAYS -> calendar.add(Calendar.DAY_OF_YEAR, amount)
+                            TimeUnit.WEEKS -> calendar.add(Calendar.WEEK_OF_YEAR, amount)
+                            TimeUnit.MONTHS -> calendar.add(Calendar.MONTH, amount)
+                            TimeUnit.YEARS -> calendar.add(Calendar.YEAR, amount)
+                        }
+                    }
+                }
                 Recurrence.NONE -> {}
             }
 

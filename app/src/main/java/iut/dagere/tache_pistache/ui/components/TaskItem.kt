@@ -1,19 +1,28 @@
 package iut.dagere.tache_pistache.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,17 +35,54 @@ import iut.dagere.tache_pistache.model.Status
 import iut.dagere.tache_pistache.model.Task
 import iut.dagere.tache_pistache.ui.theme.TachePistacheTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskItem(
         task: Task,
         onClick: () -> Unit,
         onDoneChanged: (Boolean) -> Unit = {},
+        onDelete: () -> Unit = {},
         modifier: Modifier = Modifier
 ) {
         val isDone = task.status == Status.DONE
         val isLate = task.status == Status.LATE
 
-        Card(
+        val dismissState = rememberSwipeToDismissBoxState(
+                confirmValueChange = {
+                        if (it == SwipeToDismissBoxValue.EndToStart) {
+                                onDelete()
+                                true
+                        } else false
+                }
+        )
+
+        SwipeToDismissBox(
+                state = dismissState,
+                enableDismissFromStartToEnd = false,
+                backgroundContent = {
+                        val color = when (dismissState.targetValue) {
+                                SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error
+                                else -> androidx.compose.ui.graphics.Color.Transparent
+                        }
+                        Box(
+                                modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                                        .background(color, shape = CardDefaults.shape),
+                                contentAlignment = Alignment.CenterEnd
+                        ) {
+                                if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
+                                        Icon(
+                                                Icons.Default.Delete,
+                                                contentDescription = "Supprimer",
+                                                tint = MaterialTheme.colorScheme.onError,
+                                                modifier = Modifier.padding(end = 16.dp)
+                                        )
+                                }
+                        }
+                }
+        ) {
+                Card(
                 modifier =
                         modifier.fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 4.dp)
@@ -133,6 +179,7 @@ fun TaskItem(
                         }
                 }
         }
+        }
 }
 
 @Preview(showBackground = true)
@@ -148,7 +195,8 @@ fun TaskItemPreview() {
                                                 description = "Aller au marché"
                                         ),
                                 onClick = {},
-                                onDoneChanged = {}
+                                onDoneChanged = {},
+                                onDelete = {}
                         )
                         TaskItem(
                                 task =
@@ -159,7 +207,8 @@ fun TaskItemPreview() {
                                                 status = Status.LATE
                                         ),
                                 onClick = {},
-                                onDoneChanged = {}
+                                onDoneChanged = {},
+                                onDelete = {}
                         )
                         TaskItem(
                                 task =
@@ -170,7 +219,8 @@ fun TaskItemPreview() {
                                                 status = Status.DONE
                                         ),
                                 onClick = {},
-                                onDoneChanged = {}
+                                onDoneChanged = {},
+                                onDelete = {}
                         )
                 }
         }

@@ -22,9 +22,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import iut.dagere.tache_pistache.model.Status
 import iut.dagere.tache_pistache.model.Task
 import iut.dagere.tache_pistache.model.Recurrence
+import iut.dagere.tache_pistache.model.TimeUnit
 import iut.dagere.tache_pistache.ui.theme.TachePistacheTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -67,7 +69,12 @@ fun TaskDetailScreen(
         var editedDescription by remember(task) { mutableStateOf(task.description) }
         var editedDueDate by remember(task) { mutableStateOf(task.dueDate) }
         var editedRecurrence by remember(task) { mutableStateOf(task.recurrence) }
+        var editedCustomRecurrenceValue by remember(task) { mutableStateOf(task.customRecurrenceValue?.toString() ?: "") }
+        var editedCustomRecurrenceUnit by remember(task) { mutableStateOf(task.customRecurrenceUnit ?: TimeUnit.DAYS) }
+        
         var showDatePicker by remember { mutableStateOf(false) }
+        var recurrenceExpanded by remember { mutableStateOf(false) }
+        var customUnitExpanded by remember { mutableStateOf(false) }
 
         val isDone = task.status == Status.DONE
         val isLate = task.status == Status.LATE
@@ -141,7 +148,9 @@ fun TaskDetailScreen(
                                                                                         editedDescription,
                                                                                 dueDate =
                                                                                         editedDueDate,
-                                                                                recurrence = editedRecurrence
+                                                                                recurrence = editedRecurrence,
+                                                                                customRecurrenceValue = editedCustomRecurrenceValue.toIntOrNull(),
+                                                                                customRecurrenceUnit = editedCustomRecurrenceUnit
                                                                         )
                                                                 onSave(updatedTask)
                                                                 isEditing = false
@@ -216,23 +225,85 @@ fun TaskDetailScreen(
                                         }
 
                                         Spacer(modifier = Modifier.height(12.dp))
-                                        Text("Récurrence :", style = MaterialTheme.typography.titleMedium)
-                                        androidx.compose.foundation.lazy.LazyRow(
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                                        
+                                        ExposedDropdownMenuBox(
+                                            expanded = recurrenceExpanded,
+                                            onExpandedChange = { recurrenceExpanded = !recurrenceExpanded },
+                                            modifier = Modifier.fillMaxWidth()
                                         ) {
-                                                items(Recurrence.entries.size) { index ->
-                                                        val rec = Recurrence.entries[index]
-                                                        FilterChip(
-                                                                selected = editedRecurrence == rec,
-                                                                onClick = { editedRecurrence = rec },
-                                                                label = { Text(rec.label) },
-                                                                colors = FilterChipDefaults.filterChipColors(
-                                                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                                                                )
-                                                        )
+                                            OutlinedTextField(
+                                                value = editedRecurrence.label,
+                                                onValueChange = {},
+                                                readOnly = true,
+                                                label = { Text("Récurrence") },
+                                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = recurrenceExpanded) },
+                                                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                                                modifier = Modifier.menuAnchor().fillMaxWidth()
+                                            )
+                                            ExposedDropdownMenu(
+                                                expanded = recurrenceExpanded,
+                                                onDismissRequest = { recurrenceExpanded = false }
+                                            ) {
+                                                Recurrence.entries.forEach { rec ->
+                                                    DropdownMenuItem(
+                                                        text = { Text(rec.label) },
+                                                        onClick = {
+                                                            editedRecurrence = rec
+                                                            recurrenceExpanded = false
+                                                        }
+                                                    )
                                                 }
+                                            }
+                                        }
+
+                                        if (editedRecurrence == Recurrence.CUSTOM) {
+                                            Spacer(modifier = Modifier.height(12.dp))
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                OutlinedTextField(
+                                                    value = editedCustomRecurrenceValue,
+                                                    onValueChange = { newValue -> 
+                                                        if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
+                                                            editedCustomRecurrenceValue = newValue
+                                                        }
+                                                    },
+                                                    label = { Text("Valeur") },
+                                                    modifier = Modifier.weight(1f),
+                                                    singleLine = true
+                                                )
+
+                                                ExposedDropdownMenuBox(
+                                                    expanded = customUnitExpanded,
+                                                    onExpandedChange = { customUnitExpanded = !customUnitExpanded },
+                                                    modifier = Modifier.weight(1f)
+                                                ) {
+                                                    OutlinedTextField(
+                                                        value = editedCustomRecurrenceUnit.label,
+                                                        onValueChange = {},
+                                                        readOnly = true,
+                                                        label = { Text("Unité") },
+                                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = customUnitExpanded) },
+                                                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                                                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                                                    )
+                                                    ExposedDropdownMenu(
+                                                        expanded = customUnitExpanded,
+                                                        onDismissRequest = { customUnitExpanded = false }
+                                                    ) {
+                                                        TimeUnit.entries.forEach { unit ->
+                                                            DropdownMenuItem(
+                                                                text = { Text(unit.label) },
+                                                                onClick = {
+                                                                    editedCustomRecurrenceUnit = unit
+                                                                    customUnitExpanded = false
+                                                                }
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                 }
                         } else {
@@ -408,8 +479,13 @@ fun TaskDetailScreen(
                                         }
 
                                         if (task.recurrence != Recurrence.NONE) {
+                                                val recurrenceText = if (task.recurrence == Recurrence.CUSTOM && task.customRecurrenceValue != null && task.customRecurrenceUnit != null) {
+                                                    "Tous les ${task.customRecurrenceValue} ${task.customRecurrenceUnit.label}"
+                                                } else {
+                                                    task.recurrence.label.lowercase()
+                                                }
                                                 Text(
-                                                        text = "↻ Récurrence : ${task.recurrence.label.lowercase()}",
+                                                        text = "↻ Récurrence : $recurrenceText",
                                                         style = MaterialTheme.typography.bodyMedium,
                                                         color = MaterialTheme.colorScheme.secondary,
                                                         modifier = Modifier.padding(bottom = 12.dp)
