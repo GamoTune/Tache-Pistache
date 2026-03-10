@@ -27,6 +27,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -46,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import iut.dagere.tache_pistache.model.Priority
 import iut.dagere.tache_pistache.model.Status
 import iut.dagere.tache_pistache.model.Task
 import iut.dagere.tache_pistache.model.Recurrence
@@ -71,6 +74,7 @@ fun TaskDetailScreen(
         var editedRecurrence by remember(task) { mutableStateOf(task.recurrence) }
         var editedCustomRecurrenceValue by remember(task) { mutableStateOf(task.customRecurrenceValue?.toString() ?: "") }
         var editedCustomRecurrenceUnit by remember(task) { mutableStateOf(task.customRecurrenceUnit ?: TimeUnit.DAYS) }
+        var editedPriority by remember(task) { mutableStateOf(task.priority) }
         
         var showDatePicker by remember { mutableStateOf(false) }
         var recurrenceExpanded by remember { mutableStateOf(false) }
@@ -146,6 +150,7 @@ fun TaskDetailScreen(
                                                                                 title = editedTitle,
                                                                                 description =
                                                                                         editedDescription,
+                                                                                priority = editedPriority,
                                                                                 dueDate =
                                                                                         editedDueDate,
                                                                                 recurrence = editedRecurrence,
@@ -200,6 +205,37 @@ fun TaskDetailScreen(
                                         modifier = Modifier.fillMaxWidth(),
                                         minLines = 3
                                 )
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                // Sélecteur de priorité
+                                Text(
+                                    text = "Priorité",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Priority.entries.forEach { priority ->
+                                        val priorityColor = when (priority) {
+                                            Priority.HIGH -> MaterialTheme.colorScheme.error
+                                            Priority.MEDIUM -> androidx.compose.ui.graphics.Color(0xFFFFA726)
+                                            Priority.LOW -> MaterialTheme.colorScheme.primary
+                                        }
+                                        FilterChip(
+                                            selected = editedPriority == priority,
+                                            onClick = { editedPriority = priority },
+                                            label = { Text(priority.label) },
+                                            modifier = Modifier.weight(1f),
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = priorityColor.copy(alpha = 0.2f),
+                                                selectedLabelColor = priorityColor
+                                            )
+                                        )
+                                    }
+                                }
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 // Sélection de la date d'échéance
@@ -319,6 +355,7 @@ fun TaskDetailScreen(
                                         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
+                                        // Badge statut
                                         Card(
                                                 colors =
                                                         CardDefaults.cardColors(
@@ -417,6 +454,27 @@ fun TaskDetailScreen(
                                                                         }
                                                         )
                                                 }
+                                        }
+
+                                        // Badge priorité (uniquement si non-terminée)
+                                        if (!isDone) {
+                                            val priorityColor = when (task.priority) {
+                                                Priority.HIGH -> MaterialTheme.colorScheme.error
+                                                Priority.MEDIUM -> androidx.compose.ui.graphics.Color(0xFFFFA726)
+                                                Priority.LOW -> MaterialTheme.colorScheme.primary
+                                            }
+                                            Card(
+                                                colors = CardDefaults.cardColors(
+                                                    containerColor = priorityColor.copy(alpha = 0.15f)
+                                                )
+                                            ) {
+                                                Text(
+                                                    text = task.priority.label,
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    color = priorityColor,
+                                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                                                )
+                                            }
                                         }
                                 }
 

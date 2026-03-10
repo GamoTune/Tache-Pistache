@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
@@ -31,6 +33,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import iut.dagere.tache_pistache.model.Priority
 import iut.dagere.tache_pistache.model.Status
 import iut.dagere.tache_pistache.model.Task
 import iut.dagere.tache_pistache.ui.theme.TachePistacheTheme
@@ -82,7 +85,7 @@ fun TaskItem(
                         }
                 }
         ) {
-                Card(
+        Card(
                 modifier =
                         modifier.fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 4.dp)
@@ -97,11 +100,26 @@ fun TaskItem(
                                         }
                         )
         ) {
-                Row(
-                        modifier = Modifier.fillMaxWidth().padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                        // Barre de priorité à gauche
+                        if (!isDone) {
+                                val priorityColor = when (task.priority) {
+                                        Priority.HIGH -> androidx.compose.ui.graphics.Color(0xFFE53935)
+                                        Priority.MEDIUM -> androidx.compose.ui.graphics.Color(0xFFFFA726)
+                                        Priority.LOW -> androidx.compose.ui.graphics.Color(0xFF66BB6A)
+                                }
+                                Box(
+                                        modifier = Modifier
+                                                .width(4.dp)
+                                                .fillMaxHeight()
+                                                .background(priorityColor)
+                                )
+                        }
+                        Row(
+                                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
                         Checkbox(
                                 checked = isDone,
                                 onCheckedChange = { checked -> onDoneChanged(checked) },
@@ -176,6 +194,7 @@ fun TaskItem(
                                                 )
                                         }
                                 }
+                        }
                         }
                 }
         }

@@ -13,6 +13,7 @@ data class Task(
         val title: String = "",
         val description: String = "",
         val status: Status = Status.TODO,
+        val priority: Priority = Priority.MEDIUM,
         val dueDate: Long? = null,
         val recurrence: Recurrence = Recurrence.NONE,
         val customRecurrenceValue: Int? = null,

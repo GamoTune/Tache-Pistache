@@ -1,3 +1,7 @@
 package iut.dagere.tache_pistache.model
 
-// TODO: Implémenter l'enum Priority (LOW, MEDIUM, HIGH)
+enum class Priority(val label: String) {
+    LOW("Basse"),
+    MEDIUM("Moyenne"),
+    HIGH("Haute")
+}

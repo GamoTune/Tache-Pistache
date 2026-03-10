@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -30,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import iut.dagere.tache_pistache.controller.TaskController
 import iut.dagere.tache_pistache.data.TaskRepository
 import iut.dagere.tache_pistache.model.Filter
+import iut.dagere.tache_pistache.model.Priority
 import iut.dagere.tache_pistache.model.Status
 import iut.dagere.tache_pistache.model.Task
 import iut.dagere.tache_pistache.ui.components.ConfettiOverlay
@@ -54,6 +56,8 @@ class MainActivity : ComponentActivity() {
                 var selectedFilter by remember { mutableStateOf(Filter.ALL) }
                 // État des confettis
                 var showConfetti by remember { mutableStateOf(false) }
+                // Confirmation de purge
+                var showPurgeDialog by remember { mutableStateOf(false) }
 
                 // Vérifier les tâches en retard à chaque rafraîchissement
                 remember(refreshKey) { controller.checkAndUpdateLateTasks() }
@@ -64,16 +68,24 @@ class MainActivity : ComponentActivity() {
                 // Appliquer le filtre
                 val filteredTasks =
                         remember(allTasks, selectedFilter) {
+                            val priorityOrder = mapOf(Priority.HIGH to 0, Priority.MEDIUM to 1, Priority.LOW to 2)
                             when (selectedFilter) {
                                 Filter.ALL -> allTasks
+                                        .sortedBy { priorityOrder[it.priority] }
                                 Filter.TODO ->
                                         allTasks
                                                 .filter {
                                                     it.status == Status.TODO ||
                                                             it.status == Status.LATE
                                                 }
-                                                .sortedBy { if (it.status == Status.LATE) 0 else 1 }
+                                                .sortedWith(
+                                                    compareBy(
+                                                        { if (it.status == Status.LATE) 0 else 1 },
+                                                        { priorityOrder[it.priority] }
+                                                    )
+                                                )
                                 Filter.LATE -> allTasks.filter { it.status == Status.LATE }
+                                        .sortedBy { priorityOrder[it.priority] }
                                 Filter.DONE -> allTasks.filter { it.status == Status.DONE }
                             }
                         }
@@ -104,8 +116,7 @@ class MainActivity : ComponentActivity() {
                                             title = { Text("Tache Pistache") },
                                             actions = {
                                                 IconButton(onClick = {
-                                                    controller.purgeDoneTasks()
-                                                    refreshKey++
+                                                    showPurgeDialog = true
                                                 }) {
                                                     Icon(Icons.Default.Delete, contentDescription = "Purger les tâches terminées")
                                                 }
@@ -173,6 +184,29 @@ class MainActivity : ComponentActivity() {
 
                     // Overlay de confettis par-dessus tout le contenu
                     ConfettiOverlay(isVisible = showConfetti, onFinished = { showConfetti = false })
+
+                    // Dialog de confirmation de purge
+                    if (showPurgeDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showPurgeDialog = false },
+                            title = { Text("Purger les tâches terminées") },
+                            text = { Text("Cette action supprimera définitivement toutes les tâches marquées comme terminées. Continuer ?") },
+                            confirmButton = {
+                                androidx.compose.material3.TextButton(
+                                    onClick = {
+                                        controller.purgeDoneTasks()
+                                        refreshKey++
+                                        showPurgeDialog = false
+                                    }
+                                ) { Text("Supprimer", color = MaterialTheme.colorScheme.error) }
+                            },
+                            dismissButton = {
+                                androidx.compose.material3.TextButton(
+                                    onClick = { showPurgeDialog = false }
+                                ) { Text("Annuler") }
+                            }
+                        )
+                    }
                 }
             }
         }
