@@ -17,5 +17,7 @@ data class Task(
         val dueDate: Long? = null,
         val recurrence: Recurrence = Recurrence.NONE,
         val customRecurrenceValue: Int? = null,
-        val customRecurrenceUnit: TimeUnit? = null
+        val customRecurrenceUnit: TimeUnit? = null,
+        val pictures: List<Picture> = emptyList(),
+        val reward: Int = 0
 )

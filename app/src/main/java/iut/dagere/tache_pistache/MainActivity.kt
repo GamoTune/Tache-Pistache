@@ -4,9 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -26,8 +29,13 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import iut.dagere.tache_pistache.controller.RewardController
 import iut.dagere.tache_pistache.controller.TaskController
 import iut.dagere.tache_pistache.data.TaskRepository
 import iut.dagere.tache_pistache.model.Filter
@@ -48,6 +56,7 @@ class MainActivity : ComponentActivity() {
             TachePistacheTheme {
                 val repository = remember { TaskRepository() }
                 val controller = remember { TaskController(repository) }
+                val rewardController = remember { RewardController() }
                 var nextId by remember { mutableIntStateOf(1) }
                 var selectedTask by remember { mutableStateOf<Task?>(null) }
                 // Force recomposition when tasks change
@@ -58,9 +67,15 @@ class MainActivity : ComponentActivity() {
                 var showConfetti by remember { mutableStateOf(false) }
                 // Confirmation de purge
                 var showPurgeDialog by remember { mutableStateOf(false) }
+                // Mode création directe en édition
+                var startInEditMode by remember { mutableStateOf(false) }
 
                 // Vérifier les tâches en retard à chaque rafraîchissement
-                remember(refreshKey) { controller.checkAndUpdateLateTasks() }
+                @Suppress("UNUSED_VARIABLE")
+                val lateCheck = remember(refreshKey) {
+                    controller.checkAndUpdateLateTasks()
+                    true
+                }
 
                 // Read tasks (refreshKey triggers recomposition)
                 val allTasks = remember(refreshKey) { controller.getAllTasks() }
@@ -97,16 +112,24 @@ class MainActivity : ComponentActivity() {
                                 allTasks.find { it.id == selectedTask!!.id } ?: selectedTask!!
                         TaskDetailScreen(
                                 task = currentTask,
-                                onBack = { selectedTask = null },
+                                onBack = {
+                                    selectedTask = null
+                                    startInEditMode = false
+                                },
                                 onSave = { updatedTask ->
                                     controller.updateTask(updatedTask)
                                     refreshKey++
                                 },
                                 onDone = { task ->
-                                    controller.onTaskDone(task)
+                                    controller.onTaskDone(task, rewardController)
                                     refreshKey++
                                     showConfetti = true
-                                }
+                                },
+                                onDelete = { task ->
+                                    controller.deleteTask(task)
+                                    refreshKey++
+                                },
+                                startInEditMode = startInEditMode
                         )
                     } else {
                         Scaffold(
@@ -115,6 +138,24 @@ class MainActivity : ComponentActivity() {
                                     TopAppBar(
                                             title = { Text("Tache Pistache") },
                                             actions = {
+                                                // Compteur de pistaches
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                                    modifier = Modifier.padding(end = 8.dp)
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(id = R.drawable.ic_pistachio),
+                                                        contentDescription = "Pistaches",
+                                                        modifier = Modifier.size(20.dp).rotate(-45f),
+                                                        tint = androidx.compose.ui.graphics.Color.Unspecified
+                                                    )
+                                                    Text(
+                                                        text = "${rewardController.pistachioActualReward}",
+                                                        style = MaterialTheme.typography.titleMedium,
+                                                        color = MaterialTheme.colorScheme.onPrimary
+                                                    )
+                                                }
                                                 IconButton(onClick = {
                                                     showPurgeDialog = true
                                                 }) {
@@ -138,14 +179,10 @@ class MainActivity : ComponentActivity() {
                                 floatingActionButton = {
                                     FloatingActionButton(
                                             onClick = {
-                                                val newTask =
-                                                        Task(
-                                                                id = nextId,
-                                                                title = "Tâche #$nextId",
-                                                                description =
-                                                                        "Description de la tâche #$nextId"
-                                                        )
+                                                val newTask = Task(id = nextId)
                                                 controller.onAddTaskClicked(newTask)
+                                                selectedTask = newTask
+                                                startInEditMode = true
                                                 nextId++
                                                 refreshKey++
                                             },
@@ -161,10 +198,13 @@ class MainActivity : ComponentActivity() {
                         ) { innerPadding ->
                             TaskListScreen(
                                     tasks = filteredTasks,
-                                    onTaskClick = { task -> selectedTask = task },
+                                    onTaskClick = { task ->
+                                        selectedTask = task
+                                        startInEditMode = false
+                                    },
                                     onTaskDone = { task, isDone ->
                                         if (isDone) {
-                                            controller.onTaskDone(task)
+                                            controller.onTaskDone(task, rewardController)
                                             showConfetti = true
                                         } else {
                                             controller.updateTask(task.copy(status = Status.TODO))

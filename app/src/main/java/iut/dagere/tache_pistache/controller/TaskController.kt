@@ -13,8 +13,9 @@ class TaskController(private val repository: TaskRepository) {
         repository.saveTask(task)
     }
 
-    fun onTaskDone(task: Task) {
-        val doneTask = task.copy(status = Status.DONE)
+    fun onTaskDone(task: Task, rewardController: RewardController? = null) {
+        val reward = rewardController?.onTaskDone(task) ?: 0
+        val doneTask = task.copy(status = Status.DONE, reward = reward)
         repository.saveTask(doneTask)
 
         // Gestion de la récurrence
