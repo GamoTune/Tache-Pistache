@@ -1,5 +1,6 @@
 package iut.dagere.tache_pistache.controller
 
+import android.content.Context
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -7,14 +8,23 @@ import iut.dagere.tache_pistache.model.Priority
 import iut.dagere.tache_pistache.model.Status
 import iut.dagere.tache_pistache.model.Task
 
-class RewardController {
+class RewardController(context: Context) {
+    private val prefs = context.getSharedPreferences("rewards", Context.MODE_PRIVATE)
+
     /** Total de pistaches accumulées */
-    var pistachioActualReward by mutableIntStateOf(0)
+    var pistachioActualReward by mutableIntStateOf(prefs.getInt("actualReward", 0))
         private set
 
     /** Total maximum de pistaches qu'on aurait pu gagner (sans retard) */
-    var pistachioMaxReward by mutableIntStateOf(0)
+    var pistachioMaxReward by mutableIntStateOf(prefs.getInt("maxReward", 0))
         private set
+
+    private fun persist() {
+        prefs.edit()
+            .putInt("actualReward", pistachioActualReward)
+            .putInt("maxReward", pistachioMaxReward)
+            .apply()
+    }
 
     /**
      * Calcule la récompense en pistaches pour une tâche donnée.
@@ -48,6 +58,7 @@ class RewardController {
 
         val reward = calculateReward(task)
         pistachioActualReward += reward
+        persist()
         return reward
     }
 }

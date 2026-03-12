@@ -1,9 +1,12 @@
 package iut.dagere.tache_pistache
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -35,6 +38,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import iut.dagere.tache_pistache.controller.NotificationController
 import iut.dagere.tache_pistache.controller.RewardController
 import iut.dagere.tache_pistache.controller.TaskController
 import iut.dagere.tache_pistache.data.TaskRepository
@@ -48,16 +52,27 @@ import iut.dagere.tache_pistache.ui.screens.TaskListScreen
 import iut.dagere.tache_pistache.ui.theme.TachePistacheTheme
 
 class MainActivity : ComponentActivity() {
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ -> }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Demander la permission de notification (Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
         setContent {
             TachePistacheTheme {
-                val repository = remember { TaskRepository() }
+                val repository = remember { TaskRepository(this@MainActivity) }
                 val controller = remember { TaskController(repository) }
-                val rewardController = remember { RewardController() }
-                var nextId by remember { mutableIntStateOf(1) }
+                val rewardController = remember { RewardController(this@MainActivity) }
+                val notificationController = remember { NotificationController(this@MainActivity) }
+                var nextId by remember { mutableIntStateOf((controller.getAllTasks().maxOfOrNull { it.id } ?: 0) + 1) }
                 var selectedTask by remember { mutableStateOf<Task?>(null) }
                 // Force recomposition when tasks change
                 var refreshKey by remember { mutableIntStateOf(0) }
@@ -73,7 +88,8 @@ class MainActivity : ComponentActivity() {
                 // Vérifier les tâches en retard à chaque rafraîchissement
                 @Suppress("UNUSED_VARIABLE")
                 val lateCheck = remember(refreshKey) {
-                    controller.checkAndUpdateLateTasks()
+                    val newLateTasks = controller.checkAndUpdateLateTasks()
+                    notificationController.sendLateTaskNotification(newLateTasks)
                     true
                 }
 

@@ -75,13 +75,17 @@ class TaskController(private val repository: TaskRepository) {
     /**
      * Vérifie et met à jour le statut des tâches en retard. Une tâche est en retard si sa date
      * d'échéance est passée et qu'elle n'est pas DONE.
+     * Retourne la liste des tâches nouvellement passées en retard.
      */
-    fun checkAndUpdateLateTasks() {
+    fun checkAndUpdateLateTasks(): List<Task> {
         val now = System.currentTimeMillis()
+        val newLateTasks = mutableListOf<Task>()
         repository.getAllTasks().forEach { task ->
             if (task.dueDate != null && task.dueDate < now && task.status == Status.TODO) {
                 repository.saveTask(task.copy(status = Status.LATE))
+                newLateTasks.add(task)
             }
         }
+        return newLateTasks
     }
 }
