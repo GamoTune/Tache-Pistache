@@ -223,7 +223,7 @@ class MainActivity : ComponentActivity() {
                                             controller.onTaskDone(task, rewardController)
                                             showConfetti = true
                                         } else {
-                                            controller.updateTask(task.copy(status = Status.TODO))
+                                            controller.onTaskUndone(task)
                                         }
                                         refreshKey++
                                     },

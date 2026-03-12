@@ -48,7 +48,38 @@ class TaskController(private val repository: TaskRepository) {
                 status = Status.TODO,
                 dueDate = calendar.timeInMillis
             )
-            repository.saveTask(nextTask)
+
+            // Éviter les doublons : ne pas créer si une tâche récurrente similaire existe déjà
+            val alreadyExists = repository.getAllTasks().any { existing ->
+                existing.id != task.id &&
+                existing.title == task.title &&
+                existing.recurrence == task.recurrence &&
+                existing.status != Status.DONE
+            }
+            if (!alreadyExists) {
+                repository.saveTask(nextTask)
+            }
+        }
+    }
+
+    /**
+     * Annule la complétion d'une tâche : remet en TODO et supprime la tâche
+     * récurrente enfant qui avait été créée automatiquement.
+     */
+    fun onTaskUndone(task: Task) {
+        repository.saveTask(task.copy(status = Status.TODO))
+
+        // Supprimer la tâche récurrente enfant si elle existe
+        if (task.recurrence != Recurrence.NONE) {
+            val childTask = repository.getAllTasks().find { existing ->
+                existing.id != task.id &&
+                existing.title == task.title &&
+                existing.recurrence == task.recurrence &&
+                existing.status != Status.DONE
+            }
+            if (childTask != null) {
+                repository.deleteTask(childTask)
+            }
         }
     }
 
