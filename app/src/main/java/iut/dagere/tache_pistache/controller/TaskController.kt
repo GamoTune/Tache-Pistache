@@ -92,7 +92,19 @@ class TaskController(private val repository: TaskRepository) {
     }
 
     fun updateTask(task: Task) {
-        repository.saveTask(task)
+        // Recalculer le statut en fonction de la date, si la tâche n'est pas DONE
+        val updatedStatus = if (task.status != Status.DONE) {
+            val now = System.currentTimeMillis()
+            if (task.dueDate != null && task.dueDate < now) {
+                Status.LATE
+            } else {
+                Status.TODO // Revient en TODO si la date est repoussée ou supprimée
+            }
+        } else {
+            task.status
+        }
+        
+        repository.saveTask(task.copy(status = updatedStatus))
     }
 
     fun onFilterSelected(status: Status): List<Task> {
