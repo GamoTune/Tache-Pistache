@@ -14,8 +14,11 @@ class TaskController(private val repository: TaskRepository) {
     }
 
     fun onTaskDone(task: Task, rewardController: RewardController? = null) {
-        val reward = rewardController?.onTaskDone(task) ?: 0
-        val doneTask = task.copy(status = Status.DONE, reward = reward)
+        val currentTask = repository.getAllTasks().find { it.id == task.id } ?: return
+        if (currentTask.status == Status.DONE) return
+
+        val reward = rewardController?.onTaskDone(currentTask) ?: 0
+        val doneTask = currentTask.copy(status = Status.DONE, reward = reward)
         repository.saveTask(doneTask)
 
         // Gestion de la récurrence
@@ -65,9 +68,14 @@ class TaskController(private val repository: TaskRepository) {
     /**
      * Annule la complétion d'une tâche : remet en TODO et supprime la tâche
      * récurrente enfant qui avait été créée automatiquement.
+     * Retire également la récompense attribuée.
      */
-    fun onTaskUndone(task: Task) {
-        repository.saveTask(task.copy(status = Status.TODO))
+    fun onTaskUndone(task: Task, rewardController: RewardController? = null) {
+        val currentTask = repository.getAllTasks().find { it.id == task.id } ?: return
+        if (currentTask.status != Status.DONE) return
+
+        rewardController?.onTaskUndone(currentTask, currentTask.reward)
+        repository.saveTask(currentTask.copy(status = Status.TODO, reward = 0))
 
         // Supprimer la tâche récurrente enfant si elle existe
         if (task.recurrence != Recurrence.NONE) {

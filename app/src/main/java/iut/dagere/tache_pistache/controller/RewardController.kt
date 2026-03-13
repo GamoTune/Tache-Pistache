@@ -61,4 +61,19 @@ class RewardController(context: Context) {
         persist()
         return reward
     }
+
+    /**
+     * Appelé quand on annule la complétion d'une tâche.
+     * Retire les pistaches précédemment gagnées.
+     */
+    fun onTaskUndone(task: Task, previousReward: Int) {
+        val maxForTask = when (task.priority) {
+            Priority.HIGH -> 3
+            Priority.MEDIUM -> 2
+            Priority.LOW -> 1
+        }
+        pistachioMaxReward = maxOf(0, pistachioMaxReward - maxForTask)
+        pistachioActualReward = maxOf(0, pistachioActualReward - previousReward)
+        persist()
+    }
 }
