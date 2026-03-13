@@ -212,7 +212,8 @@ fun TaskDetailScreen(
                                                                         )
                                                                 onSave(updatedTask)
                                                                 isEditing = false
-                                                        }
+                                                        },
+                                                        enabled = editedTitle.trim().length >= 2
                                                 ) {
                                                         Icon(
                                                                 Icons.Default.Check,
@@ -244,11 +245,18 @@ fun TaskDetailScreen(
                 ) {
                         if (isEditing) {
                                 // Mode édition
+                                val isTitleValid = editedTitle.trim().length >= 2
                                 OutlinedTextField(
                                         value = editedTitle,
                                         onValueChange = { editedTitle = it },
                                         label = { Text("Titre") },
                                         placeholder = { Text("Nom de votre tâche pistachée...") },
+                                        isError = !isTitleValid,
+                                        supportingText = {
+                                                if (!isTitleValid) {
+                                                        Text("Le titre doit contenir au moins 2 caractères.")
+                                                }
+                                        },
                                         modifier = Modifier.fillMaxWidth()
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
